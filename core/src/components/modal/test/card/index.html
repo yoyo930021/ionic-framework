@@ -41,7 +41,14 @@
 
   <script>
     async function createModal(presentingEl, opts) {
-
+      let template = ``;
+      for (let i = 0; i < 4; i ++) {
+        template += `
+          <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Diam phasellus vestibulum lorem sed risus ultricies. At quis risus sed vulputate odio. Ipsum faucibus vitae aliquet nec. Nibh ipsum consequat nisl vel pretium lectus. Nec sagittis aliquam malesuada bibendum. Massa sapien faucibus et molestie ac. Ac ut consequat semper viverra nam. Tristique senectus et netus et malesuada. Lectus quam id leo in vitae turpis. A arcu cursus vitae congue mauris rhoncus. Vitae proin sagittis nisl rhoncus mattis rhoncus urna neque. Consectetur adipiscing elit ut aliquam purus. Leo a diam sollicitudin tempor id.
+          </p>
+        `
+      }
       // create component to open
       const element = document.createElement('div');
       element.innerHTML = `
@@ -56,7 +63,7 @@
         </ion-toolbar>
       </ion-header>
       <ion-content class="ion-padding">
-        Hello World!
+        ${template}
         <ion-button class="dismiss">Dismiss Modal</ion-button>
       </ion-content>
       `;

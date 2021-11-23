@@ -1,7 +1,7 @@
 import { Animation } from '../../../interface';
 import { getTimeGivenProgression } from '../../../utils/animation/cubic-bezier';
 import { GestureDetail, createGesture } from '../../../utils/gesture';
-import { clamp } from '../../../utils/helpers';
+import { clamp, getElementRoot } from '../../../utils/helpers';
 
 // Defaults for the card swipe animation
 export const SwipeToCloseDefaults = {
@@ -13,38 +13,128 @@ export const createSwipeToCloseGesture = (
   animation: Animation,
   onDismiss: () => void
 ) => {
+  const contentEl = el.querySelector('ion-content');
+  let contentScrollY = contentEl?.scrollY;
+
   const height = el.offsetHeight;
   let isOpen = false;
+  let blockGesture = false;
+
+  /**
+   * Determines whether or not we should allow
+   * the card modal to swipe to close when the
+   * swipe gesture occurs on ion-content.
+   * This is important as we may have scrollable
+   * content inside this modal and users may want
+   * to scroll the content rather than dismiss the modal.
+   *
+   * Swiping to close the card modal should
+   * be allowed when either of the following are true:
+   *
+   * 1. The user is not swiping on ion-content.
+   * 2. The user is swiping on ion-content, but
+   * the scroll position is at the top and the user
+   * is trying to swipe down.
+   */
+  const shouldAllowCardSwipe = (detail: GestureDetail): boolean => {
+    const target = detail.event.target as HTMLElement | null;
+    const swipingOnContent = target !== null && target.closest('ion-content') === contentEl;
+
+    /**
+     * If we are not swiping on the
+     * content then we can allow the card
+     * swipe to proceed.
+     * Note: This will need to be adjusted when implementing https://github.com/ionic-team/ionic-framework/issues/22120.
+     */
+    if (!swipingOnContent) {
+      return true;
+    }
+
+    /**
+     * If the user is scrolling down on the content, then
+     * we should let the scrolling proceed.
+     */
+    const isScrollingDown = detail.deltaY <= 0;
+    if (isScrollingDown) return false;
+
+    /**
+     * Otherwise, if the user is scrolling up on the
+     * content, we should only allow the card modal
+     * to swipe to close if the scroll position of
+     * the content is at the top. If the scroll
+     * position is not at the top, then the user
+     * likely wants to scroll up rather than
+     * close the modal.
+     */
+    const root = getElementRoot(contentEl!);
+    const scrollEl = root.querySelector('.inner-scroll');
+    if (scrollEl !== null && scrollEl.scrollTop !== 0) { return false; }
+
+    return true;
+  }
 
   const canStart = (detail: GestureDetail) => {
     const target = detail.event.target as HTMLElement | null;
-
     if (target === null ||
        !(target as any).closest) {
       return true;
     }
 
-    const contentOrFooter = target.closest('ion-content, ion-footer');
-    if (contentOrFooter === null) {
-      return true;
+    /**
+     * Swiping should be disabled on the footer.
+     */
+    const footer = target.closest('ion-footer');
+    if (footer !== null) {
+      return false;
     }
-    // Target is in the content or the footer so do not start the gesture.
-    // We could be more nuanced here and allow it for content that
-    // does not need to scroll.
-    return false;
+
+    return true;
   };
 
-  const onStart = () => {
+  const onStart = (detail: GestureDetail) => {
+    /**
+     * Determine whether or not to block the gesture
+     * based on how the user is swiping. Note that
+     * we do this check in onStart rather than canStart
+     * because we need to know which direction the
+     * user is swiping before we proceed. canStart
+     * is fired right when the first pointer event
+     * is captured. onStart is fired after canStart
+     * and after the threshold for the gesture
+     * has been met.
+     */
+    if (!shouldAllowCardSwipe(detail)) {
+      blockGesture = true;
+      return;
+    }
+
+    /**
+     * If swiping on the content
+     * we should disable scrolling otherwise
+     * the sheet will expand and the content will scroll.
+     */
+    if (contentEl) {
+      contentScrollY = contentEl.scrollY;
+      contentEl.scrollY = false;
+    }
+
     animation.progressStart(true, (isOpen) ? 1 : 0);
   };
 
   const onMove = (detail: GestureDetail) => {
+    if (blockGesture) return;
+
     const step = clamp(0.0001, detail.deltaY / height, 0.9999);
 
     animation.progressStep(step);
   };
 
   const onEnd = (detail: GestureDetail) => {
+    if (blockGesture) {
+      blockGesture = false;
+      return;
+    }
+
     const velocity = detail.velocityY;
 
     const step = clamp(0.0001, detail.deltaY / height, 0.9999);
@@ -70,6 +160,14 @@ export const createSwipeToCloseGesture = (
     animation
       .onFinish(() => {
         if (!shouldComplete) {
+          /**
+           * If the modal is fully expanded, then
+           * we can safely revert the content scrollY
+           * prop to whatever it was before.
+           */
+          if (contentEl) {
+            contentEl.scrollY = contentScrollY!;
+          }
           gesture.enable(true);
         }
       })
