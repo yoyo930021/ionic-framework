@@ -79,10 +79,14 @@ export const IonRouterOutlet = /*@__PURE__*/ defineComponent({
     const canStart = () => {
       const config = getConfig();
       const swipeEnabled = config && config.get('swipeBackEnabled', ionRouterOutlet.value.mode === 'ios');
-      if (!swipeEnabled) return false;
+      if (!swipeEnabled) {
+        return false;
+      }
 
       const stack = viewStacks.getViewStack(id);
-      if (!stack || stack.length <= 1) return false;
+      if (!stack || stack.length <= 1) {
+        return false;
+      }
 
       /**
        * We only want to outlet of the entering view
@@ -106,12 +110,12 @@ export const IonRouterOutlet = /*@__PURE__*/ defineComponent({
         const leavingEl = leavingViewItem.ionPageElement;
 
         /**
-        * If we are going back from a page that
-        * was presented using a custom animation
-        * we should default to using that
-        * unless the developer explicitly
-        * provided another animation.
-        */
+         * If we are going back from a page that
+         * was presented using a custom animation
+         * we should default to using that
+         * unless the developer explicitly
+         * provided another animation.
+         */
         const customAnimation = enteringViewItem.routerAnimation;
         if (
           animationBuilder === undefined &&
@@ -222,7 +226,9 @@ export const IonRouterOutlet = /*@__PURE__*/ defineComponent({
 
 See https://ionicframework.com/docs/vue/navigation#ionpage for more information.`);
       }
-      if (enteringViewItem === leavingViewItem) return;
+      if (enteringViewItem === leavingViewItem) {
+        return;
+      }
 
       if (!leavingViewItem && prevRouteLastPathname) {
         leavingViewItem = viewStacks.findViewItemByPathname(prevRouteLastPathname, id);
@@ -260,12 +266,12 @@ See https://ionicframework.com/docs/vue/navigation#ionpage for more information.
         fireLifecycle(leavingViewItem.vueComponent, leavingViewItem.vueComponentRef, LIFECYCLE_WILL_LEAVE);
 
         /**
-        * If we are going back from a page that
-        * was presented using a custom animation
-        * we should default to using that
-        * unless the developer explicitly
-        * provided another animation.
-        */
+         * If we are going back from a page that
+         * was presented using a custom animation
+         * we should default to using that
+         * unless the developer explicitly
+         * provided another animation.
+         */
         const customAnimation = enteringViewItem.routerAnimation;
         if (
           animationBuilder === undefined &&
@@ -291,15 +297,11 @@ See https://ionicframework.com/docs/vue/navigation#ionpage for more information.
         leavingEl.setAttribute('aria-hidden', 'true');
 
         if (routerAction === 'replace') {
-          leavingViewItem.mount = false;
-          leavingViewItem.ionPageElement = undefined;
-          leavingViewItem.ionRoute = false;
+          viewStacks.unmountViewItem(leavingViewItem);
         } else if (!(routerAction === 'push' && routerDirection === 'forward')) {
           const shouldLeavingViewBeRemoved = routerDirection !== 'none' && leavingViewItem && (enteringViewItem !== leavingViewItem);
           if (shouldLeavingViewBeRemoved) {
-            leavingViewItem.mount = false;
-            leavingViewItem.ionPageElement = undefined;
-            leavingViewItem.ionRoute = false;
+            viewStacks.unmountViewItem(leavingViewItem);
             viewStacks.unmountLeavingViews(id, enteringViewItem, delta);
           }
         } else {
@@ -318,11 +320,10 @@ See https://ionicframework.com/docs/vue/navigation#ionpage for more information.
       }
 
       fireLifecycle(enteringViewItem.vueComponent, enteringViewItem.vueComponentRef, LIFECYCLE_DID_ENTER);
-
       components.value = viewStacks.getChildrenToRender(id);
     }
 
-    const setupViewItem = (matchedRouteRef: any) => {
+    const setupViewItem = async (matchedRouteRef: any) => {
       const firstMatchedRoute = route.matched[0];
       if (!parentOutletPath) {
         parentOutletPath = firstMatchedRoute.path;
@@ -342,7 +343,7 @@ See https://ionicframework.com/docs/vue/navigation#ionpage for more information.
         !matchedRouteRef.value ||
         (matchedRouteRef.value !== firstMatchedRoute && firstMatchedRoute.path !== parentOutletPath)
       ) {
-          return;
+        return;
       }
 
       const currentRoute = ionRouter.getCurrentRouteInfo();
@@ -354,19 +355,20 @@ See https://ionicframework.com/docs/vue/navigation#ionpage for more information.
       }
 
       if (!enteringViewItem.mount) {
-        enteringViewItem.mount = true;
-        enteringViewItem.registerCallback = () => {
-          handlePageTransition();
+        viewStacks.mountViewItem(enteringViewItem);
+        enteringViewItem.registerCallback = async () => {
+          await handlePageTransition();
           enteringViewItem.registerCallback = undefined;
         }
       } else {
-        handlePageTransition();
+        await handlePageTransition();
       }
 
       components.value = viewStacks.getChildrenToRender(id);
     }
 
-    if (matchedRouteRef.value) {
+    let hasMatchedRoute = (matchedRouteRef.value);
+    if (hasMatchedRoute) {
       setupViewItem(matchedRouteRef);
     }
 
@@ -377,7 +379,11 @@ See https://ionicframework.com/docs/vue/navigation#ionpage for more information.
      */
     onUnmounted(() => viewStacks.clear(id));
 
-    // TODO types
+    /**
+     * @TODO: types
+     * @param viewItem
+     * @param ionPageEl
+     */
     const registerIonPage = (viewItem: any, ionPageEl: HTMLElement) => {
       const oldIonPageEl = viewItem.ionPageElement;
 
@@ -391,19 +397,20 @@ See https://ionicframework.com/docs/vue/navigation#ionpage for more information.
       if (viewItem.registerCallback) {
         viewItem.registerCallback();
 
-      /**
-       * If there is no registerCallback, then
-       * this component is likely being re-registered
-       * as a result of a hot module replacement.
-       * We need to see if the oldIonPageEl has
-       * .ion-page-invisible. If it does not then we
-       * need to remove it from the new ionPageEl otherwise
-       * the page will be hidden when it is replaced.
-       */
+        /**
+         * If there is no registerCallback, then
+         * this component is likely being re-registered
+         * as a result of a hot module replacement.
+         * We need to see if the oldIonPageEl has
+         * .ion-page-invisible. If it does not then we
+         * need to remove it from the new ionPageEl otherwise
+         * the page will be hidden when it is replaced.
+         */
       } else if (oldIonPageEl && !oldIonPageEl.classList.contains('ion-page-invisible')) {
         ionPageEl.classList.remove('ion-page-invisible');
       }
-  };
+    };
+
     return {
       id,
       components,
@@ -413,7 +420,7 @@ See https://ionicframework.com/docs/vue/navigation#ionpage for more information.
     }
   },
   render() {
-    const { components, registerIonPage, injectedRoute } = this;
+    const {components, registerIonPage, injectedRoute} = this;
 
     return h(
       'ion-router-outlet',
@@ -458,8 +465,8 @@ See https://ionicframework.com/docs/vue/navigation#ionpage for more information.
           ? routePropsOption === true
             ? c.params
             : typeof routePropsOption === 'function'
-            ? getPropsFunctionResult()
-            : routePropsOption
+              ? getPropsFunctionResult()
+              : routePropsOption
           : null
 
         props = {
