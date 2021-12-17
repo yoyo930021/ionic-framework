@@ -34,13 +34,13 @@ export const createViewStacks = (router: Router) => {
     return findViewItemByPath(routeInfo.pathname, outletId, false);
   }
 
-  const findLeavingViewItemByRouteInfo = (routeInfo: RouteInfo, outletId?: number, mustBeIonRoute: boolean = true, useDeprecatedRouteSetup: boolean = false) => {
+  const findLeavingViewItemByRouteInfo = (routeInfo: RouteInfo, outletId?: number, mustBeIonRoute: boolean = true) => {
     const hasLeavingView = routeInfo.replacedRoute !== undefined || routeInfo.lastPathname !== undefined;
     if (hasLeavingView === false) {
       return undefined;
     }
     const leavingViewPathname = routeInfo.replacedRoute ? routeInfo.replacedRoute :  routeInfo.lastPathname;
-    return findViewItemByPath(leavingViewPathname, outletId, mustBeIonRoute, useDeprecatedRouteSetup);
+    return findViewItemByPath(leavingViewPathname, outletId, mustBeIonRoute);
   }
 
   const findViewItemByPathname = (pathname: string, outletId?: number) => {
