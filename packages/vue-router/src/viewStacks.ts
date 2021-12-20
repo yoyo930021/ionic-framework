@@ -1,5 +1,6 @@
 import { generateId } from './utils';
-import {  RouteInfo,
+import {
+  RouteInfo,
   ViewItem,
   ViewStacks,
 } from './types';
@@ -39,7 +40,7 @@ export const createViewStacks = (router: Router) => {
     if (hasLeavingView === false) {
       return undefined;
     }
-    const leavingViewPathname = routeInfo.replacedRoute ? routeInfo.replacedRoute :  routeInfo.lastPathname;
+    const leavingViewPathname = routeInfo.replacedRoute ? routeInfo.replacedRoute : routeInfo.lastPathname;
     return findViewItemByPath(leavingViewPathname, outletId, mustBeIonRoute);
   }
 
@@ -199,6 +200,10 @@ export const createViewStacks = (router: Router) => {
 
     for (let i = startIndex + 1; i < startIndex - delta; i++) {
       const viewItem = viewStack[i];
+      if (viewItem === undefined) {
+        console.warn('unmountLeavingViews: Undefined viewItem');
+        continue;
+      }
       unmountViewItem(viewItem);
     }
   }
