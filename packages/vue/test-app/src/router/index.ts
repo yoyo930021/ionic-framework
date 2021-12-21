@@ -83,7 +83,7 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/tabs/',
-    component: () => import('@/views/Tabs.vue'),
+    component: () => import('@/views/tabs/primary/Tabs.vue'),
     children: [
       {
         path: '',
@@ -91,33 +91,71 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: 'tab1',
-        component: () => import('@/views/Tab1.vue'),
-      },
-      {
-        path: 'tab1/:id',
-        component: () => import('@/views/Tab1Parameter.vue'),
-        props: true
+        component: () => import('@/views/tabs/primary/children/Tab1.vue'),
+        children: [
+          {
+            path: 'child-one',
+            component: () => import('@/views/tabs/primary/children/Tab1ChildOne.vue')
+          },
+          {
+            path: 'child-two',
+            component: () => import('@/views/tabs/primary/children/Tab1ChildTwo.vue')
+          }
+        ]
       },
       {
         path: 'tab2',
-        component: () => import('@/views/Tab2.vue')
+        component: () => import('@/views/tabs/primary/children/Tab2.vue')
       },
       {
         path: 'tab3',
         beforeEnter: (to, from, next) => {
           next({ path: '/tabs/tab1' });
         },
-        component: () => import('@/views/Tab3.vue')
+        component: () => import('@/views/tabs/primary/children/Tab3.vue')
       },
       {
         path: 'tab4',
-        component: () => import('@/views/Tab4.vue')
+        component: () => import('@/views/tabs/primary/children/Tab4.vue')
+      }
+    ]
+  },
+  {
+    path: '/tabs-new/',
+    component: () => import('@/views/tabs/primary/TabsNew.vue'),
+    children: [
+      {
+        path: '',
+        redirect: '/tabs-new/tab1'
+      },
+      {
+        path: 'tab1',
+        component: () => import('@/views/tabs/primary/children/Tab1.vue'),
+      },
+      {
+        path: 'tab1/child-one',
+        component: () => import('@/views/tabs/primary/children/Tab1ChildOne.vue')
+      },
+      {
+        path: 'tab1/child-two',
+        component: () => import('@/views/tabs/primary/children/Tab1ChildTwo.vue')
+      },
+      {
+        path: 'tab2',
+        component: () => import('@/views/tabs/primary/children/Tab2.vue')
+      },
+      {
+        path: 'tab3',
+        beforeEnter: (to, from, next) => {
+          next({ path: '/tabs/tab1' });
+        },
+        component: () => import('@/views/tabs/primary/children/Tab3.vue')
       }
     ]
   },
   {
     path: '/tabs-secondary/',
-    component: () => import('@/views/TabsSecondary.vue'),
+    component: () => import('@/views/tabs/secondary/TabsSecondary.vue'),
     children: [
       {
         path: '',
@@ -125,15 +163,15 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: 'tab1',
-        component: () => import('@/views/Tab1Secondary.vue')
+        component: () => import('@/views/tabs/secondary/children/Tab1Secondary.vue')
       },
       {
         path: 'tab2',
-        component: () => import('@/views/Tab2Secondary.vue')
+        component: () => import('@/views/tabs/secondary/children/Tab2Secondary.vue')
       },
       {
         path: 'tab3',
-        component: () => import('@/views/Tab3Secondary.vue')
+        component: () => import('@/views/tabs/secondary/children/Tab3Secondary.vue')
       }
     ]
   }

@@ -7,7 +7,7 @@
           <ion-tab-button
             v-for="tab in tabs"
             :tab="'tab' + tab.id"
-            :href="'/tabs/tab' + tab.id"
+            :href="'/tabs-new/tab' + tab.id"
             :key="tab.id"
           >
             <ion-icon :icon="tab.icon" />
@@ -38,7 +38,7 @@ export default defineComponent({
     ])
     const router = useRouter();
     const addTab = () => {
-      router.addRoute({ path: '/tabs/tab4', component: () => import('@/views/Tab4.vue') });
+      router.addRoute({ path: '/tabs/tab4', component: () => import('@/views/tabs/primary/children/Tab4.vue') });
       tabs.value = [
         ...tabs.value,
         {
