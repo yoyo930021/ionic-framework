@@ -70,5 +70,15 @@
   "web-types": "dist/web-types.json",
   "sideEffects": [
     "css/*.css"
-  ]
+  ],
+  "eslintConfig": {
+    "root": true,
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "module"
+    },
+    "env": {
+      "es6": true
+    }
+  }
 }
