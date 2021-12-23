@@ -278,7 +278,8 @@ export const createIonRouter = (opts: IonicVueRouterOptions, router: Router) => 
 
         nextRouteInfo.lastPathname = lastRouteInfo?.lastPathname;
         // nextRouteInfo.pushedByRoute = lastRouteInfo?.prevRouteLastPathname;
-        nextRouteInfo.pushedByRoute = lastRouteInfo?.prevRouteLastPathname ?? lastRouteInfo?.pushedByRoute;
+        // nextRouteInfo.pushedByRoute = lastRouteInfo?.prevRouteLastPathname ?? lastRouteInfo?.pushedByRoute;
+        nextRouteInfo.pushedByRoute = leavingRouteInfo?.pushedByRoute;
         nextRouteInfo.routerDirection = lastRouteInfo?.routerDirection;
         nextRouteInfo.routerAnimation = lastRouteInfo?.routerAnimation;
         nextRouteInfo.prevRouteLastPathname = lastRouteInfo?.lastPathname;
